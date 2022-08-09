@@ -59,7 +59,7 @@ client.on("guildCreate", async (guild) => {
 });
 
 const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord.js');
+const { Routes } = require('discord-api-types/v10');
 const fs = require('fs');
 const commands = [];
 const commandFiles = fs.readdirSync('./commands');
@@ -79,7 +79,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 		{ body: commands },
 	);
 	console.log("successfully requested set commands.");
-});
+})();
 
 client.on('interactionCreate', async interaction => {
 	if(!interaction.isCommand()) return;
