@@ -26,7 +26,7 @@ client.on('ready', () => {
   console.log(`${client.user.tag}로 로그인 완료!`);
   client.user.setActivity(`이모지 확대용 봇 | ${client.guilds.cache.size}개의 서버에서 일하는중`, {
     type: "PLAYING",
-  });
+	});
 });
 
 process.on("unhandledRejection", (reason, p) => {
@@ -57,5 +57,43 @@ client.on("guildCreate", async (guild) => {
   let teddypicker = await client.users.fetch('653157614452211712');
   teddypicker.send(`봇이 **${guild.name}** 서버에 추가됨`);
 });
+
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord.js');
+const fs = require('fs');
+const commands = [];
+const commandFiles = fs.readdirSync('./commands');
+client.commands = new Discord.Collection();
+
+for(const file of commandFiles){
+	const command = require(`./commands/${file}`);
+	commands.push(command.data.toJSON());
+	client.commands.set(command.data.name, command);
+}
+
+const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+
+(async () => {
+	await rest.put(
+		Routes.applicationCommands(process.env.CLIENT_ID),
+		{ body: commands },
+	);
+	console.log("successfully requested set commands.");
+});
+
+client.on('interactionCreate', async interaction => {
+	if(!interaction.isCommand()) return;
+	if(interaction.member.bot) return;
+
+	const cmd = client.commands.get(interaction.commandName);
+	if(!cmd) return;
+
+	try{
+		await cmd.execute(interaction);
+	}catch(e){
+		console.log(e);
+		await interaction.reply("명령어 처리하는데 오류가 발생했습니다.");
+	}
+})
 
 client.login(process.env.TOKEN);
